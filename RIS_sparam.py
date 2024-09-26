@@ -1,108 +1,123 @@
 
 import os 
-# os.system('Measurement_PostProcessing_Braunsweig.py')
-# os.system('Measurement_PostProcessing_Kyiv.py')
-
-
 import matplotlib.pyplot as plt
 import skrf as rf
+import math
 
 rf.stylely()
 
-pathMeas = 'C:/Work/PythonApps/RIS_sparam/Measurement/Kyiv/new_meas/Hor_2port_24092024/'
-# pathMeas = '../RIS_measurements_Braunsweig/VNA/Calibrated_until_Antenna_0_20V/'
+pathSim  = '../RIS_sparam/Simulation/UnitCell/'
+pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/1port_24092024/'
+# pathMeas = '../RIS_sparam/Measurement/Braunsweig/VNA/Calibrated_until_Antenna_0_20V/'
 # voltages = [0.01, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19.8]
-voltages = [0.01, 5, 10, 15, 19.8]
+voltages = [19.8]
 #voltages = [0.01, 10]
 
-startT = 1.7
-stopT = 4.7
+startT = 2
+stopT = 5
 unitT = 'ns'
 modeT = 'bandpass'
 windowT = 'hann'
 methodT = 'fft'
 
-air     = rf.Network(pathMeas+'noDUT.s2p')
-metal   = rf.Network(pathMeas+'metal.s2p')
-air_21 = air.s21
-metal_21 = metal.s21
-R_metal = (metal_21-air_21)
+noDUT_sim_UC = rf.Network(pathSim+'noDUT.s1p')
+metal_sim_UC = rf.Network(pathSim+'metal.s1p')
+noDUT_sim_UC_11 = noDUT_sim_UC.s11
+metal_sim_UC_11 = metal_sim_UC.s11
 
-air_21_gated    =   air_21.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
-metal_21_gated  = metal_21.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
-R_metal_gated   =  R_metal.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
+noDUT_meas  = rf.Network(pathMeas+'noDUT.s1p')
+metal_meas  = rf.Network(pathMeas+'metal.s1p')
+noDUT_meas_21 = noDUT_meas.s11
+metal_meas_21 = metal_meas.s11
+noDUT_meas_21_gated = noDUT_meas_21.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
+metal_meas_21_gated = metal_meas_21.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
 
-V = []
-V_21 = []
-V_21_gated = []
-R_21 = []
-R_21_gated = []
+
+
+V_meas = []
+V_meas_21 = []
+V_meas_21_gated = []
+R_meas_21 = []
+R_meas_21_gated = []
+
+V_sim_UC    = []
+V_sim_UC_11 = []
+R_sim_UC_11 = []
+
 for i in range(len(voltages)):
-    pathV = "{path}{voltage}.s2p".format(path=pathMeas, voltage=voltages[i])
-    print(pathV)
-    V.insert(i,rf.Network(pathV))
-    V_21.insert(i, V[i].s21)
-    V_21_gated.insert(i, V_21[i].time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT))
 
-    R_21.insert(i, (V_21[i] - air_21)/(metal_21 - air_21))
-    R_21_gated.insert(i, (V_21_gated[i] - air_21_gated)/(metal_21_gated - air_21_gated))
-    R_21[i].name = "{voltage}".format(voltage=voltages[i])
-    R_21_gated[i].name = "gated {voltage}".format(voltage=voltages[i])
+    pathUC = "{path}{voltage}.s1p".format(path=pathSim, voltage=voltages[i])
+    V_sim_UC.insert(i,rf.Network(pathUC))
+    V_sim_UC_11.insert(i, V_sim_UC[i].s11)
+    R_sim_UC_11.insert(i, (V_sim_UC_11[i]/noDUT_sim_UC_11))
+    R_sim_UC_11[i].name = "R Sim UC {voltage}V".format(voltage=voltages[i])
+
+    pathV = "{path}{voltage}.s1p".format(path=pathMeas, voltage=voltages[i])
+    V_meas.insert(i,rf.Network(pathV))
+
+    V_meas_21.insert(i, V_meas[i].s11)
+    R_meas_21.insert(i, (V_meas_21[i] - noDUT_meas_21)/(metal_meas_21 - noDUT_meas_21))
+    R_meas_21[i] = R_meas_21[i] + (1j*pow(2,-0.5));
+    R_meas_21[i].name = "Meas {voltage}".format(voltage=voltages[i])
+
+    V_meas_21_gated.insert(i, V_meas_21[i].time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT))
+    R_meas_21_gated.insert(i, (V_meas_21_gated[i] - noDUT_meas_21_gated)/(metal_meas_21_gated - noDUT_meas_21_gated))
+    R_meas_21_gated[i] = R_meas_21_gated[i] + (1j*pow(2,-0.5));
+    R_meas_21_gated[i].name = "Meas gated {voltage}".format(voltage=voltages[i])
+
+    print(pathUC)
+    print(pathV)
 
 # plot frequency and time-domain s-parameters
-# plt.figure(0)
-# plt.subplot(121)
-# for i in range(len(voltages)):
-#     # R_21_gated[i].plot_s_deg_unwrap()
-#     R_21[i].plot_s_deg_unwrap()
-# plt.title('Reflected Phase')
-# plt.ylabel('Unwrapped phase [deg]')
-# plt.xlabel('Frequency')
-
-# plt.subplot(122)
-# for i in range(len(voltages)):
-#     # R_21_gated[i].plot_s_mag()
-#     R_21[i].plot_s_mag()
-# plt.title('Reflected Amplitude')
-# plt.ylabel('Amplitude [1]')
-# plt.xlabel('Frequency')
-# plt.tight_layout()
-# plt.show()
-
-# # plot frequency and time-domain s-parameters
 plt.figure(1)
 plt.subplot(121)
 for i in range(len(voltages)):
-    R_21[i].plot_s_mag()
+    R_meas_21[i].plot_s_mag()
 for i in range(len(voltages)):
-    R_21_gated[i].plot_s_mag()
-plt.ylabel('Amplitude [1]')
-plt.xlabel('Frequency')
-plt.xlim([9.5e9, 12.5e9])
-
-plt.subplot(122)
+    R_meas_21_gated[i].plot_s_mag()
 for i in range(len(voltages)):
-    R_21[i].plot_s_deg()
-for i in range(len(voltages)):
-    R_21_gated[i].plot_s_deg()
+    R_sim_UC_11[i].plot_s_mag()
 plt.title('Reflected Amplitude')
 plt.ylabel('Amplitude [1]')
 plt.xlabel('Frequency')
-plt.xlim([9.5e9, 12.5e9])
+# plt.xlim([9.5e9, 12.5e9])
+
+plt.subplot(122)
+for i in range(len(voltages)):
+    R_meas_21[i].plot_s_deg_unwrap()
+for i in range(len(voltages)):
+    R_meas_21_gated[i].plot_s_deg_unwrap()
+for i in range(len(voltages)):
+    R_sim_UC_11[i].plot_s_deg_unwrap()
+plt.title('Reflected Phase')
+plt.ylabel('Phase [deg]')
+plt.xlabel('Frequency')
+# plt.xlim([9.5e9, 12.5e9])
 plt.tight_layout()
 plt.show()
 
 
-print("finished")
+
+
+# plt.figure(1)
+# plt.subplot(121)
+# air_21.plot_s_db_time()
+# metal_21.plot_s_db_time()
+# for i in range(len(voltages)):
+#     V_21[i].plot_s_db_time()
+#     # V_21_gated[i].plot_s_db_time()
+# plt.title('Time Domain')
+# plt.ylabel('Phase [deg]')
+# plt.xlabel('Frequency')
 
 # plt.subplot(122)
-# air_21.plot_s_deg_unwrap()
-# metal_21.plot_s_deg_unwrap()
 # for i in range(len(voltages)):
-#     # V_21[i].plot_s_db_time()
-#     V_21[i].plot_s_deg_unwrap()
-#     # V_21_gated[i].plot_s_db_time()
-# # plt.title('Time Domain')
+#     R_21_gated[i].plot_s_deg()
 # plt.ylabel('Magnitude [dB]')
 # plt.xlabel('Frequency')
+# plt.xlim([9.5e9, 12.5e9])
+# plt.tight_layout()
 # plt.show()
+
+
+print("finished")
