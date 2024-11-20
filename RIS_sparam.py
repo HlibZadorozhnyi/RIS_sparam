@@ -11,18 +11,19 @@ def main():
 
     pathSim  = '../RIS_sparam/Simulation/UnitCell/'
     # voltages = [0.01, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19.8]
-    voltages = [0.01, 19.8]
+    voltages = [0.01]
+    # voltages = [5]
 
-    Sowner = 'Braunsweig' # owner of the S-parameters: Kyiv or Braunsweig
-    Sfile = 's2p'   # Depends on the measurement system: s1p or s2p
-    Sparam = 's21'  # Select the Sparam to apply the Time Analyzis
+    Sowner = 'Kyiv' # owner of the S-parameters: Kyiv or Braunschweig
+    Sfile = 's1p'   # Depends on the measurement system: s1p or s2p
+    Sparam = 's11'  # Select the Sparam to apply the Time Analyzis
 
     # new_freq = rf.Frequency(7,13,60001,'ghz')
 
-    if Sowner == 'Braunsweig':
-        pathMeas = '../RIS_sparam/Measurement/Braunsweig/VNA/Calibrated_until_Antenna_0_20V/'
+    if Sowner == 'Braunschweig':
+        pathMeas = '../RIS_sparam/Measurement/Braunschweig/VNA/Calibrated_until_Antenna_0_20V/'
         postfix = '_1'
-        startT = 3.7
+        startT = 3.5
         stopT = 6
     elif Sowner == 'Kyiv':
 
@@ -35,10 +36,10 @@ def main():
         # stopT = 4
 
         ### 2) The test was conducted near the WR90. Another test was performed at a far distance of 3300 mm using two antennas.
-        # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant2/'
-        # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant2/'
-        # startT = 15
-        # stopT = 30
+        # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant1/'
+        pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant2/'
+        startT = 15
+        stopT = 30
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_near_openWR90/'
         # startT = -2
         # stopT = 2
@@ -52,9 +53,9 @@ def main():
         ### The latest test focused on the antenna's maximum bandwidth at a distance of 320 mm.
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/1port_24092024/'
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Ver_2port_24092024/'
-        pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Hor_2port_24092024/'
-        startT = 2.3
-        stopT = 4.8
+        # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Hor_2port_24092024/'
+        # startT = 2.3
+        # stopT = 4.8
 
         postfix = ''
         
@@ -85,8 +86,8 @@ def main():
         noDUT_meas = noDUT_meas.s22
         metal_meas = metal_meas.s22
 
-    noDUT_meas.windowed()
-    metal_meas.windowed()
+    # noDUT_meas.windowed()
+    # metal_meas.windowed()
     # noDUT_meas.interpolate(new_freq, kind = 'cubic')
     # metal_meas.interpolate(new_freq, kind = 'cubic')
     noDUT_meas_gated = noDUT_meas.time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT)
@@ -126,7 +127,7 @@ def main():
             V_meas.insert(i, Vmeas.s12)
         elif Sparam == 's22':
             V_meas.insert(i, Vmeas.s22)
-        V_meas[i].windowed()
+        # V_meas[i].windowed()
         # V_meas[i].interpolate(new_freq, kind = 'cubic')
         V_meas_gated.insert(i, V_meas[i].time_gate(start=startT, stop=stopT, t_unit=unitT, mode=modeT, window=windowT, method=methodT))
 
@@ -142,9 +143,24 @@ def main():
 
         ### For the Latest measurement
         if Sowner == 'Kyiv':
-            R_deg_meas[i] = R_deg_meas[i] + 50
-            R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
-        elif Sowner == 'Braunsweig':
+            if voltages[i] == 0.01:
+                R_deg_meas[i] = R_deg_meas[i] + 50
+                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
+            elif voltages[i] == 5:
+                R_deg_meas[i] = R_deg_meas[i] + 50
+                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
+            elif voltages[i] == 10:
+                R_deg_meas[i] = R_deg_meas[i] + 50
+                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
+            elif voltages[i] == 15:
+                R_deg_meas[i] = R_deg_meas[i] + 360 + 50
+                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
+            elif voltages[i] == 19.8:
+                R_deg_meas[i] = R_deg_meas[i] + 360 + 50
+                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
+
+        elif Sowner == 'Braunschweig':
+            ### Only for Sparam == 's21'
             if voltages[i] == 0.01:
                 R_deg_meas[i] = R_deg_meas[i] + 700
                 R_deg_meas_gated[i] = R_deg_meas_gated[i] - 20
@@ -166,8 +182,8 @@ def main():
         print(pathUC)
         print(pathV)
 
-    freq_meas = V_meas[i].f
-    freq_sim = V_sim_UC[i].f
+    freq_meas = (V_meas[i].f)/1e9
+    freq_sim = (V_sim_UC[i]).f/1e9
 
 
     # Time domain analyzis
@@ -175,11 +191,11 @@ def main():
     plt.subplot(221)
     plotTimeDomain([],[], V_meas, noDUT_meas, metal_meas, voltages)
     plt.subplot(222)
-    plotTimeDomain([startT-2,stopT+2],[], V_meas, noDUT_meas, metal_meas, voltages)
+    plotTimeDomain([startT-5,stopT+5],[], V_meas, noDUT_meas, metal_meas, voltages)
     plt.subplot(223)    # gated
     plotTimeDomain([],[], V_meas_gated, noDUT_meas_gated, metal_meas_gated, voltages)
     plt.subplot(224)    # gated
-    plotTimeDomain([startT-2,stopT+2],[], V_meas_gated, noDUT_meas_gated, metal_meas_gated, voltages)
+    plotTimeDomain([startT-5,stopT+5],[], V_meas_gated, noDUT_meas_gated, metal_meas_gated, voltages)
 
     # Reflection coefficient using Skrf build-in functions
     plt.figure(2)
@@ -194,12 +210,52 @@ def main():
 
     # Reflection coefficient phase using manual normalization
     plt.figure(3)
+    plt.subplot(221)
+    legenda = []
     for i in range(len(voltages)):
-        plt.plot(freq_meas, R_deg_meas[i])
-        plt.plot(freq_meas, R_deg_meas_gated[i])
-        plt.plot(freq_sim, R_deg_simUC[i])
-    #plt.legend(["R meas", "R meas gated", "R sim UC"])
-    plt.xlim([7e9, 13e9])
+        plt.plot(freq_meas, R_deg_meas[i], ls=':', lw=2)
+        legenda.insert((i), '{voltage}'.format(voltage=voltages[i]))
+    plt.legend(legenda)
+    plt.title("R meas", fontsize=10)
+    plt.ylabel("Phase [deg]")
+    plt.xlim([7, 13])
+    plt.ylim([-500, 100])
+
+    plt.subplot(222)
+    legenda = []
+    for i in range(len(voltages)):
+        plt.plot(freq_meas, R_deg_meas_gated[i], ls='--', lw=3)
+        legenda.insert((i), '{voltage}'.format(voltage=voltages[i]))
+    plt.legend(legenda)
+    plt.title("R meas gated", fontsize=10)
+    plt.ylabel("Phase [deg]")
+    plt.xlim([7, 13])
+    plt.ylim([-500, 100])
+
+    plt.subplot(223)
+    legenda = []
+    for i in range(len(voltages)):
+        plt.plot(freq_sim, R_deg_simUC[i], lw=2)
+        legenda.insert((i), '{voltage}'.format(voltage=voltages[i]))
+    plt.legend(legenda)
+    plt.title("R sim UC", fontsize=10)
+    plt.xlabel("Frequency [GHz]")
+    plt.ylabel("Phase [deg]")
+    plt.xlim([7, 13])
+    plt.ylim([-500, 100])
+
+    plt.subplot(224)
+    legenda = []
+    for i in range(len(voltages)):
+        plt.plot(freq_meas, R_deg_meas_gated[i], ls='--', lw=3)
+        plt.plot(freq_sim, R_deg_simUC[i], lw=2)
+        legenda.insert((1+3*i), '{voltage} R meas gated '.format(voltage=voltages[i]))
+        legenda.insert((2+3*i), '{voltage} R sim UC '.format(voltage=voltages[i]))
+    plt.legend(legenda)
+    plt.title("R meas gated + R sim UC", fontsize=10)
+    plt.xlabel("Frequency [GHz]")
+    plt.ylabel("Phase [deg]")
+    plt.xlim([7, 13])
     plt.ylim([-400, 100])
 
 
