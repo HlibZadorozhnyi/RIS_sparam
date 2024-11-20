@@ -11,12 +11,12 @@ def main():
 
     pathSim  = '../RIS_sparam/Simulation/UnitCell/'
     # voltages = [0.01, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 19.8]
-    voltages = [0.01]
-    # voltages = [5]
+    voltages = [0.01, 10]
+    # voltages = [19.8]
 
     Sowner = 'Kyiv' # owner of the S-parameters: Kyiv or Braunschweig
-    Sfile = 's1p'   # Depends on the measurement system: s1p or s2p
-    Sparam = 's11'  # Select the Sparam to apply the Time Analyzis
+    Sfile = 's2p'   # Depends on the measurement system: s1p or s2p
+    Sparam = 's21'  # Select the Sparam to apply the Time Analyzis
 
     # new_freq = rf.Frequency(7,13,60001,'ghz')
 
@@ -37,9 +37,9 @@ def main():
 
         ### 2) The test was conducted near the WR90. Another test was performed at a far distance of 3300 mm using two antennas.
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant1/'
-        pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant2/'
-        startT = 15
-        stopT = 30
+        # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_3300mm_ant2/'
+        # startT = 15
+        # stopT = 30
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/single port/RIS_04092024_near_openWR90/'
         # startT = -2
         # stopT = 2
@@ -50,12 +50,12 @@ def main():
         # startT = -1
         # stopT = 3
 
-        ### The latest test focused on the antenna's maximum bandwidth at a distance of 320 mm.
+        ### The latest test focused on the antenna's maximum bandwidth at a distance of 360 mm.
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/1port_24092024/'
         # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Ver_2port_24092024/'
-        # pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Hor_2port_24092024/'
-        # startT = 2.3
-        # stopT = 4.8
+        pathMeas = '../RIS_sparam/Measurement/Kyiv/new_meas/Hor_2port_24092024/'
+        startT = 2.3
+        stopT = 4.8
 
         postfix = ''
         
@@ -160,22 +160,38 @@ def main():
                 R_deg_meas_gated[i] = R_deg_meas_gated[i] + 50
 
         elif Sowner == 'Braunschweig':
-            ### Only for Sparam == 's21'
-            if voltages[i] == 0.01:
-                R_deg_meas[i] = R_deg_meas[i] + 700
-                R_deg_meas_gated[i] = R_deg_meas_gated[i] - 20
-            elif voltages[i] == 5:
-                R_deg_meas[i] = R_deg_meas[i] - 1100
-                R_deg_meas_gated[i] = R_deg_meas_gated[i] - 20
-            elif voltages[i] == 10:
-                R_deg_meas[i] = R_deg_meas[i]- 40
-                R_deg_meas_gated[i] = R_deg_meas_gated[i] - 40
-            elif voltages[i] == 15:
-                R_deg_meas[i] = R_deg_meas[i] - 780
-                R_deg_meas_gated[i] = R_deg_meas_gated[i] - 50
-            elif voltages[i] == 19.8:
-                R_deg_meas[i] = R_deg_meas[i] + 2090
-                R_deg_meas_gated[i] = R_deg_meas_gated[i] + 300
+            if Sparam == 's11':
+                if voltages[i] == 0.01:
+                    R_deg_meas[i] = R_deg_meas[i] - 380
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] - 1100
+                elif voltages[i] == 5:
+                    R_deg_meas[i] = R_deg_meas[i] - 2180
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] - 1100
+                elif voltages[i] == 10:
+                    R_deg_meas[i] = R_deg_meas[i] - 740
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] - 1100
+                elif voltages[i] == 15:
+                    R_deg_meas[i] = R_deg_meas[i] - 1120
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] - 390
+                elif voltages[i] == 19.8:
+                    R_deg_meas[i] = R_deg_meas[i] + 1400
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] - 390
+            elif Sparam == 's21':
+                if voltages[i] == 0.01:
+                    R_deg_meas[i] = R_deg_meas[i] + 680
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i]
+                elif voltages[i] == 5:
+                    R_deg_meas[i] = R_deg_meas[i] - 1100
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i]
+                elif voltages[i] == 10:
+                    R_deg_meas[i] = R_deg_meas[i] - 50
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i]
+                elif voltages[i] == 15:
+                    R_deg_meas[i] = R_deg_meas[i] - 800
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i]
+                elif voltages[i] == 19.8:
+                    R_deg_meas[i] = R_deg_meas[i] + 2090
+                    R_deg_meas_gated[i] = R_deg_meas_gated[i] + 360
 
         
 
@@ -190,23 +206,31 @@ def main():
     plt.figure(1)
     plt.subplot(221)
     plotTimeDomain([],[], V_meas, noDUT_meas, metal_meas, voltages)
+    plt.title("Time domain full span")
+    plt.legend(loc='upper left')
     plt.subplot(222)
     plotTimeDomain([startT-5,stopT+5],[], V_meas, noDUT_meas, metal_meas, voltages)
+    plt.title("Time domain responce of the DUTs")
+    plt.legend(loc='lower right')
     plt.subplot(223)    # gated
     plotTimeDomain([],[], V_meas_gated, noDUT_meas_gated, metal_meas_gated, voltages)
+    plt.title("Time domain Gated full span")
+    plt.legend(loc='upper left')
     plt.subplot(224)    # gated
     plotTimeDomain([startT-5,stopT+5],[], V_meas_gated, noDUT_meas_gated, metal_meas_gated, voltages)
+    plt.title("Time domain Gated responce of the DUTs")
+    plt.legend(loc='lower left')
 
     # Reflection coefficient using Skrf build-in functions
     plt.figure(2)
     plt.subplot(221)
     plotRdeg([7e9, 13e9], [], R_meas, R_sim_UC, voltages)
     plt.subplot(222)
-    plotRmag([7e9, 13e9], [0,5], R_meas, R_sim_UC, voltages)
+    plotRmag([7e9, 13e9], [0,2], R_meas, R_sim_UC, voltages)
     plt.subplot(223)
     plotRdeg([7e9, 13e9], [], R_meas_gated, R_sim_UC, voltages)
     plt.subplot(224)
-    plotRmag([7e9, 13e9], [0,5], R_meas_gated, R_sim_UC, voltages)
+    plotRmag([7e9, 13e9], [0,2], R_meas_gated, R_sim_UC, voltages)
 
     # Reflection coefficient phase using manual normalization
     plt.figure(3)
@@ -256,7 +280,7 @@ def main():
     plt.xlabel("Frequency [GHz]")
     plt.ylabel("Phase [deg]")
     plt.xlim([7, 13])
-    plt.ylim([-400, 100])
+    plt.ylim([-500, 100])
 
 
     plt.show()
